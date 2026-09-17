@@ -5,6 +5,10 @@ alwaysApply: true
 
 # GymMate — métier & Firebase
 
+## Domaine produit
+
+GymMate est **CrossFit uniquement** : pas de musculation / cardio / multi-sports génériques. Vocabulaire : box, athlète, WOD, RX / Scaled, focus (force, metcon, gymnastique).
+
 ## Règle centrale
 
 Une visite de profil **ne crée aucune** relation. Seule l’**acceptation** d’une demande crée relation + séance + chat (transaction atomique).
@@ -13,7 +17,9 @@ Parcours : `pending` → `rejected` (rien) | `accepted` (relation + séance + ch
 
 ## Collections
 
-`users/{uid}` · `gyms/{gymId}` · `trainingRequests/{requestId}` · `relations/{pairId}` · `trainingSessions/{requestId}` · `chats/{pairId}/messages/{id}`
+`users/{uid}` · `gyms/{gymId}` (boxes) · `trainingRequests/{requestId}` · `relations/{pairId}` · `trainingSessions/{requestId}` · `chats/{pairId}/messages/{id}`
+
+Le champ sport / activité des demandes et séances vaut **CrossFit** (éventuellement un focus de séance).
 
 ## Données
 

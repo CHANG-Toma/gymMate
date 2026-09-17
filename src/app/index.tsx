@@ -1,54 +1,77 @@
-import { Alert, Animated, Button, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useEffect, useRef, useState } from 'react';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-export default function HomeScreen() {
-  const [count, setCount] = useState(0);
-  const countAnimated = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(countAnimated, {
-      toValue: count,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, [count]);
+export default function WelcomeScreen() {
+  const theme = useTheme();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={styles.content}>
+        <Text style={[styles.brand, { color: theme.text }]}>GymMate</Text>
+        <Text style={[styles.tagline, { color: theme.textSecondary }]}>
+          Trouve ton partenaire de CrossFit.
+        </Text>
+        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+          Découvre les athlètes de ta box, propose un WOD ou un créneau force, et
+          entraînez-vous ensemble.
+        </Text>
 
-      <Text>{count}</Text>
-      <Pressable onPress={() => setCount(count + 1)}>
-        <Text>cliquer pour afficher</Text>
-      </Pressable>
-
-      <Pressable onPress={() => setCount(count - 1)}>
-        <Text>cliquer pour masquer</Text>
-      </Pressable>
-
-      <Animated.View style={{ opacity: countAnimated }}>
-        <Text style={[styles.text, { color: 'black' }]}>Affichage du compteur</Text>
-      </Animated.View>
-
-    </SafeAreaView> 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Découvrir les athlètes CrossFit"
+          onPress={() => router.push('/discover')}
+          style={({ pressed }) => [
+            styles.button,
+            {
+              backgroundColor: theme.text,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}>
+          <Text style={[styles.buttonLabel, { color: theme.background }]}>Découvrir</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  text: {
+  content: {
+    flex: 1,
+    width: '100%',
+    maxWidth: MaxContentWidth,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+    gap: Spacing.three,
+  },
+  brand: {
+    fontSize: 40,
+    fontWeight: '700',
+  },
+  tagline: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: '500',
+  },
+  subtitle: {
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: Spacing.two,
+  },
+  button: {
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    borderRadius: 10,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

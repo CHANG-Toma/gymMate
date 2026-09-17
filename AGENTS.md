@@ -14,3 +14,5 @@ Avant chaque génération de code, respecter les règles Cursor dans `.cursor/ru
 Source pédagogique : `GymMate_Projet_Fil_Rouge_React_Native_Firebase.pdf`.
 
 **Rappel** : UI locale jusqu’à J3 ; Firebase seulement à partir de J4.
+
+**Domaine** : CrossFit uniquement (pas multi-sports).

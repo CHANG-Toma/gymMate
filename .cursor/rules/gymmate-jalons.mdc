@@ -26,7 +26,9 @@ Avant toute génération de code, identifier le jalon courant et **ne pas antici
 
 ## Périmètre socle (obligatoire)
 
-Compte + profil + salle · membres même salle · demandes accept/refus · séances · chat post-acceptation.
+**Domaine unique : CrossFit** (pas multi-sports). Les profils, demandes et séances concernent des athlètes / boxes CrossFit (WOD, force, gymnastique, metcon).
+
+Compte + profil + box · membres même box · demandes accept/refus · séances · chat post-acceptation.
 
 **Bonus seulement si demandé** : photo Storage, géoloc, notifs, calendrier, blocage.
 

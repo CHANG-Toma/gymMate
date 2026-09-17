@@ -1,16 +1,19 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
-
-import HomeScreen from '.';
+import { useEffect } from 'react';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <HomeScreen />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ title: 'GymMate', headerShown: false }} />
+      <Stack.Screen name="discover" options={{ title: 'Découvrir' }} />
+      <Stack.Screen name="member/[userId]" options={{ title: 'Profil' }} />
+    </Stack>
   );
 }
