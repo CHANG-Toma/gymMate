@@ -1,0 +1,56 @@
+---
+description: Principes SOLID — à respecter avant chaque génération de code
+alwaysApply: true
+---
+
+# Principes SOLID
+
+Appliquer à chaque génération. Privilégier des modules petits, typés et testables.
+
+## S — Single Responsibility
+
+Une unité = une raison de changer.
+
+```ts
+// ❌ BAD : écran qui écrit aussi dans Firestore
+async function onAccept() {
+  await updateDoc(...);
+  setStatus('accepted');
+}
+
+// ✅ GOOD : écran orchestre, service écrit
+await requestService.acceptRequest(requestId);
+```
+
+Écrans → UI/état. Services → Firebase. Utils → formatage/validation.
+
+## O — Open/Closed
+
+Étendre sans modifier le cœur. Nouveaux cas via props, variantes de composants ou nouvelles fonctions de service — pas en gonflant un `if` géant existant.
+
+## L — Liskov Substitution
+
+Un composant/hook de remplacement doit respecter le même contrat (props, états loading/vide/erreur). Ne pas casser les callers en changeant silencieusement le comportement attendu.
+
+## I — Interface Segregation
+
+Typer des entrées/sorties **étroites**. Éviter un mega-type ou un contexte fourre-tout.
+
+```ts
+// ❌ BAD
+type Everything = User & Profile & Gym & Request & Chat;
+
+// ✅ GOOD
+type MemberCardProps = { displayName: string; activity: string; onPress: () => void };
+```
+
+## D — Dependency Inversion
+
+Les écrans dépendent d’abstractions (services), pas de `firebase/firestore` directement. Init Firebase uniquement dans `src/services/firebase.ts`.
+
+## Checklist rapide
+
+- [ ] Pas de logique métier lourde dans un écran
+- [ ] Pas d’accès Firebase hors `src/services/`
+- [ ] Types précis, pas `any`
+- [ ] Une fonction / un composant = un rôle clair

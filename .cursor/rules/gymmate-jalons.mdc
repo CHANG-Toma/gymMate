@@ -1,0 +1,35 @@
+---
+description: GymMate — jalons, méthode et périmètre avant chaque génération
+alwaysApply: true
+---
+
+# GymMate — règles de progression
+
+Avant toute génération de code, identifier le jalon courant et **ne pas anticiper** les suivants.
+
+## Ordre obligatoire (J1 → J10)
+
+| Jalon | Faire | Interdit |
+|-------|--------|----------|
+| J1 | Accueil GymMate, `MemberCard`, liste locale | Firebase, Auth |
+| J2 | Props/state, formulaire, `PrimaryButton`, `EmptyState` | Firebase |
+| J3 | Expo Router, onglets, params (`userId`, etc.) | Firebase |
+| J4 | `firebase.ts`, AuthContext, services | Auth complète avant config |
+| J5+ | Auth, profils, salles, demandes, relations, chat, règles | Sauter des étapes |
+
+## Méthode à chaque changement
+
+1. Comprendre → coder → tester → expliquer.
+2. Mettre à jour `docs/suivi.md` (ce qui marche, test, difficulté).
+3. Données locales d’abord ; Firebase seulement à partir de **J4**.
+4. Chaque écran gère : chargement, vide, succès, erreur.
+
+## Périmètre socle (obligatoire)
+
+Compte + profil + salle · membres même salle · demandes accept/refus · séances · chat post-acceptation.
+
+**Bonus seulement si demandé** : photo Storage, géoloc, notifs, calendrier, blocage.
+
+## Source de vérité
+
+Respecter `GymMate_Projet_Fil_Rouge_React_Native_Firebase.pdf`. En cas de doute, relire le PDF plutôt qu’improviser.

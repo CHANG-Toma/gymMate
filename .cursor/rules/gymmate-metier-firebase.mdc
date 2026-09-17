@@ -1,0 +1,31 @@
+---
+description: GymMate — règles métier, modèle Firestore et accès
+alwaysApply: true
+---
+
+# GymMate — métier & Firebase
+
+## Règle centrale
+
+Une visite de profil **ne crée aucune** relation. Seule l’**acceptation** d’une demande crée relation + séance + chat (transaction atomique).
+
+Parcours : `pending` → `rejected` (rien) | `accepted` (relation + séance + chat).
+
+## Collections
+
+`users/{uid}` · `gyms/{gymId}` · `trainingRequests/{requestId}` · `relations/{pairId}` · `trainingSessions/{requestId}` · `chats/{pairId}/messages/{id}`
+
+## Données
+
+- Email/mot de passe uniquement dans Authentication ; **pas** dans les profils partagés.
+- Timestamps Firestore + `serverTimestamp()` pour les créations.
+- Droits basés sur les **UID**, jamais sur le nom affiché.
+- Chat accessible **seulement** après une relation issue d’une acceptation.
+- Relation déjà créée reste si une nouvelle demande est refusée / séance annulée.
+
+## Firebase (dès J4)
+
+- Une seule init : `src/services/firebase.ts` (`auth` + `db`).
+- Persistance Auth mobile via AsyncStorage.
+- AuthProvider à la racine ; `onAuthStateChanged` (pas un seul `auth.currentUser`).
+- Règles Firestore strictes : deny by default ; compléter avec les features.

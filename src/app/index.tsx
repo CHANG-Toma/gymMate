@@ -1,24 +1,42 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, Button, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HomeScreen() {
+  const [count, setCount] = useState(0);
+  const countAnimated = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(countAnimated, {
+      toValue: count,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [count]);
+
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.title}>Hello World!!</Text>
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+
+      <Text>{count}</Text>
+      <Pressable onPress={() => setCount(count + 1)}>
+        <Text>cliquer pour afficher</Text>
+      </Pressable>
+
+      <Pressable onPress={() => setCount(count - 1)}>
+        <Text>cliquer pour masquer</Text>
+      </Pressable>
+
+      <Animated.View style={{ opacity: countAnimated }}>
+        <Text style={[styles.text, { color: 'black' }]}>Affichage du compteur</Text>
+      </Animated.View>
+
+    </SafeAreaView> 
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.four,
@@ -28,7 +46,9 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
   },
-  title: {
-    textAlign: 'center',
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });

@@ -1,0 +1,31 @@
+---
+description: GymMate — stack Expo 57, structure dossiers et UI
+alwaysApply: true
+---
+
+# GymMate — architecture
+
+## Stack
+
+- React Native + **Expo SDK 57** + TypeScript + Expo Router + Firebase.
+- Avant de coder Expo/RN : lire https://docs.expo.dev/versions/v57.0.0/
+- Ne pas inventer d’API dépréciées ou hors SDK 57.
+
+## Dossiers
+
+| Chemin | Rôle |
+|--------|------|
+| `src/app/` | Routes / écrans (`_layout.tsx`) |
+| `src/components/` | UI réutilisable |
+| `src/contexts/` | AuthContext + session |
+| `src/services/` | Firebase + lectures/écritures |
+| `src/types/` · `src/utils/` | Types métier, validation, dates |
+
+Les écrans appellent des services (`sendTrainingRequest(...)`) ; **jamais** Firebase directement dans les composants.
+
+## UI
+
+- Composants de base : `MemberCard`, `PrimaryButton`, `EmptyState`.
+- `StyleSheet` + `Pressable` / `FlatList` ; boutons avec libellés explicites.
+- Empêcher le double appui qui duplique une action.
+- Clavier ne doit pas masquer la validation des formulaires.
