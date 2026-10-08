@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# GymMate (Expo + Firebase)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application CrossFit (projet fil rouge React Native).
 
 ## Get started
 
@@ -10,10 +10,18 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Configure Firebase (J4)
+
+   - Crée un projet Firebase + app **Web**
+   - Active Authentication Email/Password
+   - Crée Firestore et publie `firestore.rules`
+   - Crée les docs `gyms` listés dans `src/data/seed-gyms.ts`
+   - Copie `.env.example` → `.env.local` et renseigne les 4 variables
+
+3. Start the app
 
    ```bash
-   npx expo start
+   npx expo start --clear
    ```
 
 In the output, you'll find options to open the app in a

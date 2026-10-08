@@ -176,7 +176,7 @@ export default function ProfileScreen() {
 
   if (savedProfile) {
     return (
-      <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
+      <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
         <View style={styles.successScreen}>
           <Text style={styles.successKicker}>PROFIL PRÊT</Text>
           <Text style={styles.stepTitle}>Bienvenue, {savedProfile.displayName}</Text>
@@ -204,7 +204,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
+    <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

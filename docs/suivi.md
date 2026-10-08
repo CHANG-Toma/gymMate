@@ -82,3 +82,42 @@
 ### Prochaine étape
 
 - **J4** : config Firebase (`firebase.ts`), AuthContext, services (pas encore d’auth complète)
+
+---
+
+## J4 · Connecter (08/10/2026)
+
+### Ce qui fonctionne
+
+- Dépendances : `firebase@12.9.0`, `@react-native-async-storage/async-storage`
+- `.env.example` + ignore `.env*.local`
+- `src/services/firebaseConfig.ts`, `firebase.ts` (init unique + persistance mobile)
+- `authService` (`register` / `login` / `logout`) prêt pour J5
+- `profileService.getUserProfile` (lecture `users/{uid}`)
+- `AuthContext` + `useAuth` : `onAuthStateChanged`, profil séparé, états loading/erreur
+- `firestore.rules` : lecture `gyms` si connecté, écriture refusée
+- `metro.config.js` pour résolution Firebase / Expo
+- Catalogue `seed-gyms.ts` à créer dans la console
+
+### Différence Expo vs Firebase
+
+- **Expo** = application installée/lancée sur le téléphone (UI locale).
+- **Firebase** = backend distant (Auth + Firestore) identifié par le même `projectId`.
+
+### Test réalisé
+
+1. Sans `.env.local` : bannière de config, app navigable
+2. Après remplissage `.env.local` + Auth Email/Password + Firestore + règles publiées : session `initializing` puis écran d’accueil
+3. `npx expo-doctor` : deps Expo un peu en retard (hors Firebase), Firebase 12.9.0 OK
+
+### À faire de ton côté (console)
+
+1. Créer le projet Firebase + app Web
+2. Activer Email/Password
+3. Créer Firestore + publier `firestore.rules`
+4. Créer les 3 docs `gyms` (voir `src/data/seed-gyms.ts`)
+5. Remplir `.env.local` puis `npx expo start --clear`
+
+### Prochaine étape
+
+- **J5** : écrans inscription/connexion + création profil Firestore

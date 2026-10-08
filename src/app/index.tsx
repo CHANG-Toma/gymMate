@@ -34,7 +34,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.root}>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safeArea}>
         <Animated.View
           style={[
             styles.content,

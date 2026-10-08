@@ -59,7 +59,7 @@ export default function RequestScreen() {
 
   if (!member) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
         <View style={styles.content}>
           <Text style={styles.title}>Athlète introuvable</Text>
           <Text style={styles.body}>Impossible de proposer un WOD sans destinataire valide.</Text>
@@ -71,7 +71,7 @@ export default function RequestScreen() {
 
   if (sent) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
         <View style={styles.content}>
           <Text style={styles.kicker}>DEMANDE LOCALE</Text>
           <Text style={styles.title}>Proposition prête</Text>

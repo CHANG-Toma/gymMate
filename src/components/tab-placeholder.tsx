@@ -15,7 +15,7 @@ export type TabPlaceholderProps = {
 /** Écran onglet local en attendant Firebase (J7+). */
 export function TabPlaceholder({ title, message, actionLabel, onAction }: TabPlaceholderProps) {
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
+    <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <View style={styles.content}>
         <EmptyState
           title={title}

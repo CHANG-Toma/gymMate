@@ -74,7 +74,7 @@ export default function DiscoverScreen() {
 
   return (
     <SafeAreaView
-      edges={['bottom', 'left', 'right']}
+      edges={['left', 'right']}
       style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <FlatList
         data={status === 'ready' ? visibleMembers : []}

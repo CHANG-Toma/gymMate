@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
 import { Brand } from '@/constants/brand';
@@ -7,11 +8,11 @@ import { Spacing } from '@/constants/theme';
 
 export default function NotFoundScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
       <Text style={styles.title}>Cette page n’existe pas</Text>
       <Text style={styles.body}>Vérifie le lien, ou reviens à l’accueil GymMate.</Text>
       <PrimaryButton label="Retour à l’accueil" onPress={() => router.replace('/')} />
-    </View>
+    </SafeAreaView>
   );
 }
 

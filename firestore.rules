@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /gyms/{gymId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Autres collections : deny by default jusqu'aux jalons suivants.
+  }
+}

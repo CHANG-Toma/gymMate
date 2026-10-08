@@ -13,7 +13,7 @@ export default function MemberDetailScreen() {
 
   if (!member) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.safeArea}>
         <View style={styles.content}>
           <Text style={styles.title}>Membre introuvable</Text>
           <Text style={styles.body}>Aucun athlète CrossFit ne correspond à cet identifiant.</Text>
