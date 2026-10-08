@@ -53,3 +53,32 @@
 ### Prochaine étape
 
 - **J3** : onglets Expo Router + parcours cliquable complet (params, retour)
+
+---
+
+## J3 · Naviguer (08/10/2026)
+
+### Ce qui fonctionne
+
+- Navigation racine Stack : accueil, onglets, détail membre, proposition WOD, 404
+- Onglets Expo Router : Découvrir, Demandes, Séances, Messages, Profil
+- Params `userId` sur `/member/[userId]` et `/request/[userId]`
+- Écrans Demandes / Séances / Messages en placeholder local (`EmptyState`)
+- Parcours : Accueil → onglets → détail → Proposer un WOD → Retour
+- Route inexistante via `+not-found`
+
+### Test réalisé
+
+1. Accueil → Découvrir → carte → profil athlète → Retour
+2. Accueil → Créer mon profil (onglet Profil)
+3. Basculer entre les 5 onglets
+4. Proposer un WOD (formulaire local simulé)
+5. Ouvrir une route inventée → écran Introuvable
+
+### Difficulté rencontrée
+
+- Réorganiser les fichiers dans `(tabs)/` sans casser les liens de l’accueil.
+
+### Prochaine étape
+
+- **J4** : config Firebase (`firebase.ts`), AuthContext, services (pas encore d’auth complète)

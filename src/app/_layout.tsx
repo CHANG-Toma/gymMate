@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
+import { Brand } from '@/constants/brand';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -10,11 +12,19 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'GymMate', headerShown: false }} />
-      <Stack.Screen name="discover" options={{ title: 'Découvrir' }} />
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: Brand.black },
+        headerTintColor: Brand.white,
+        headerTitleStyle: { fontWeight: '700' },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: Brand.black },
+      }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="member/[userId]" options={{ title: 'Profil athlète' }} />
-      <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
+      <Stack.Screen name="request/[userId]" options={{ title: 'Proposer un WOD' }} />
+      <Stack.Screen name="+not-found" options={{ title: 'Introuvable' }} />
     </Stack>
   );
 }
