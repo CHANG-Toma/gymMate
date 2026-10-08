@@ -43,6 +43,10 @@ function RootNavigator() {
           contentStyle: { backgroundColor: Brand.black },
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ title: 'Connexion' }} />
+        <Stack.Screen name="register" options={{ title: 'Inscription' }} />
+        <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
+        <Stack.Screen name="choose-gym" options={{ title: 'Choisir une box' }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="member/[userId]" options={{ title: 'Profil athlète' }} />
         <Stack.Screen name="request/[userId]" options={{ title: 'Proposer un WOD' }} />

@@ -121,3 +121,34 @@
 ### Prochaine étape
 
 - **J5** : écrans inscription/connexion + création profil Firestore
+
+---
+
+## J5 · Identifier (08/10/2026)
+
+### Ce qui fonctionne
+
+- `/register` : nom, email, mot de passe, confirmation + `users/{uid}` initial (`gymId: null`)
+- Reprise si le compte Auth existe mais le profil Firestore a échoué
+- `/login` + messages d’erreur génériques
+- `/profile` : wizard CrossFit → `updateDoc` Firestore
+- `/choose-gym` : lecture `gyms` + `gymId` (une fois)
+- Onglet Profil : résumé + déconnexion
+- Protection des onglets si non connecté / profil incomplet
+- `firestore.rules` : owner users + lecture même salle + gyms
+
+### À faire de ton côté
+
+1. **Republier** les règles Firestore (`firestore.rules` mis à jour)
+2. Tester : inscription → profil → box → Découvrir → déconnexion → reconnexion
+
+### Test prévu
+
+1. Créer compte A
+2. Compléter profil + choisir `gym_sqy`
+3. Fermer l’app, relancer : session restaurée
+4. Se déconnecter, créer/compte B : aucune donnée de A
+
+### Prochaine étape
+
+- **J6** : membres Firestore filtrés par `gymId` (A voit B, pas C)

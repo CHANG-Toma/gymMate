@@ -1,9 +1,34 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 
 import { Brand } from '@/constants/brand';
+import { useAuth } from '@/contexts/AuthContext';
+import { isProfileComplete, isProfileReadyForGym } from '@/services/profileService';
 
 export default function TabsLayout() {
+  const { user, profile, profileLoading, initializing } = useAuth();
+
+  if (initializing || profileLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Brand.black, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={Brand.accent} size="large" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <Redirect href="/login" />;
+  }
+
+  if (!isProfileReadyForGym(profile)) {
+    return <Redirect href="/profile" />;
+  }
+
+  if (!isProfileComplete(profile)) {
+    return <Redirect href="/choose-gym" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

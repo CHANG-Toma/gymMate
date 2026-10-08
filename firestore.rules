@@ -1,11 +1,61 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function sameGymAsViewer() {
+      return resource.data.gymId != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId == resource.data.gymId;
+    }
+
+    function validLevel(data) {
+      return data.level in ['beginner', 'intermediate', 'advanced'];
+    }
+
+    function validDraftCreate() {
+      return request.resource.data.gymId == null
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 2
+        && request.resource.data.displayName.size() <= 40
+        && request.resource.data.keys().hasAll([
+          'displayName', 'city', 'level', 'goal', 'sports',
+          'availability', 'bio', 'gymId', 'createdAt', 'updatedAt'
+        ]);
+    }
+
+    function gymIdImmutableOrSetOnce() {
+      return resource.data.gymId == null
+        || request.resource.data.gymId == resource.data.gymId;
+    }
+
     match /gyms/{gymId} {
-      allow read: if request.auth != null;
+      allow read: if signedIn();
       allow write: if false;
     }
 
-    // Autres collections : deny by default jusqu'aux jalons suivants.
+    match /users/{userId} {
+      allow read: if isOwner(userId) || (signedIn() && sameGymAsViewer());
+
+      allow create: if isOwner(userId) && validDraftCreate() && validLevel(request.resource.data);
+
+      allow update: if isOwner(userId)
+        && gymIdImmutableOrSetOnce()
+        && validLevel(request.resource.data)
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 2
+        && request.resource.data.displayName.size() <= 40
+        && request.resource.data.city is string
+        && request.resource.data.city.size() <= 60
+        && request.resource.data.bio is string
+        && request.resource.data.bio.size() <= 280
+        && request.resource.data.sports is list
+        && request.resource.data.availability is list;
+    }
   }
 }

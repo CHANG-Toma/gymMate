@@ -1,11 +1,13 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
 import { Brand } from '@/constants/brand';
+import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { isProfileComplete, isProfileReadyForGym } from '@/services/profileService';
 
 const HIGHLIGHTS = [
   { label: 'BOX', value: 'Même salle' },
@@ -14,6 +16,7 @@ const HIGHLIGHTS = [
 ] as const;
 
 export default function WelcomeScreen() {
+  const { user, profile, profileLoading } = useAuth();
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(28)).current;
 
@@ -31,6 +34,16 @@ export default function WelcomeScreen() {
       }),
     ]).start();
   }, [fadeIn, slideUp]);
+
+  if (user && !profileLoading) {
+    if (!isProfileReadyForGym(profile)) {
+      return <Redirect href="/profile" />;
+    }
+    if (!isProfileComplete(profile)) {
+      return <Redirect href="/choose-gym" />;
+    }
+    return <Redirect href="/discover" />;
+  }
 
   return (
     <View style={styles.root}>
@@ -76,13 +89,13 @@ export default function WelcomeScreen() {
             </Text>
 
             <PrimaryButton
-              label="Créer mon profil"
-              onPress={() => router.push('/profile')}
+              label="Créer mon compte"
+              onPress={() => router.push('/register')}
             />
             <PrimaryButton
-              label="Découvrir les athlètes"
+              label="Se connecter"
               variant="ghost"
-              onPress={() => router.push('/discover')}
+              onPress={() => router.push('/login')}
               style={styles.secondaryCta}
             />
           </View>

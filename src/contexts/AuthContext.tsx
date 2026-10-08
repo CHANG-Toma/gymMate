@@ -42,16 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const nextProfile = await getUserProfile(uid);
       setProfile(nextProfile);
-    } catch (err) {
-      const code = (err as { code?: string }).code;
-      // Règles users pas encore ouvertes au J4 : pas bloquant.
-      if (code === 'permission-denied') {
-        setProfile(null);
-        setError(null);
-      } else {
-        setProfile(null);
-        setError('Impossible de charger le profil. Vérifie ta connexion puis réessaie.');
-      }
+    } catch {
+      setProfile(null);
+      setError('Impossible de charger le profil. Vérifie ta connexion puis réessaie.');
     } finally {
       setProfileLoading(false);
     }
