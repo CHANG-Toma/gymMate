@@ -26,3 +26,30 @@
 ### Prochaine étape
 
 - **J2** : formulaire profil local, `PrimaryButton`, `EmptyState`, états de chargement simulés
+
+---
+
+## J2 · Interagir (08/10/2026)
+
+### Ce qui fonctionne
+
+- Composants `PrimaryButton` (anti double-appui + loading) et `EmptyState`
+- Écran **Mon profil** (`/profile`) : formulaire CrossFit local (`useState`) avec validation
+- Champs : nom, ville, niveau, focus, disponibilité (jour + créneau), bio
+- Sport fixe **CrossFit** ; enregistrement simulé (délai) + message de succès
+- Découvrir : états **loading / vide / erreur / succès** + chips de démo
+- `KeyboardAvoidingView` sur le formulaire pour ne pas masquer la validation
+
+### Test réalisé
+
+1. Accueil → **Créer mon profil** → erreurs si champs vides → enregistrement OK
+2. Découvrir → chip **Vide** / **Erreur** / **Liste**
+3. Découvrir → **Mon profil CrossFit** → retour stack
+
+### Difficulté rencontrée
+
+- Garder le formulaire pédagogique (local) tout en alignant les champs sur le PDF (p. 19), adaptés CrossFit.
+
+### Prochaine étape
+
+- **J3** : onglets Expo Router + parcours cliquable complet (params, retour)

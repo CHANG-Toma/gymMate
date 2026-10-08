@@ -36,11 +36,14 @@ export default function MemberDetailScreen() {
         </View>
 
         <Text style={[styles.title, { color: theme.text }]}>{member.displayName}</Text>
-        <Text style={[styles.meta, { color: theme.textSecondary }]}>
-          CrossFit · {member.focus}
-        </Text>
         <Text style={[styles.meta, { color: theme.textSecondary }]}>{member.boxName}</Text>
-        <Text style={[styles.meta, { color: theme.textSecondary }]}>Niveau · {member.level}</Text>
+        <Text style={[styles.meta, { color: theme.textSecondary }]}>
+          Objectif : {member.focus}
+        </Text>
+        <Text style={[styles.meta, { color: theme.textSecondary }]}>Niveau : {member.level}</Text>
+        <Text style={[styles.meta, { color: theme.textSecondary }]}>
+          Dispo : {member.availabilityLabel}
+        </Text>
 
         <Text style={[styles.sectionLabel, { color: theme.text }]}>À propos</Text>
         <Text style={[styles.body, { color: theme.textSecondary }]}>{member.bio}</Text>

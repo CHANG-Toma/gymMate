@@ -13,7 +13,8 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: 'GymMate', headerShown: false }} />
       <Stack.Screen name="discover" options={{ title: 'Découvrir' }} />
-      <Stack.Screen name="member/[userId]" options={{ title: 'Profil' }} />
+      <Stack.Screen name="member/[userId]" options={{ title: 'Profil athlète' }} />
+      <Stack.Screen name="profile" options={{ title: 'Mon profil' }} />
     </Stack>
   );
 }
