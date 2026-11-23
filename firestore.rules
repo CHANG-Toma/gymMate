@@ -9,9 +9,13 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function viewerProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function sameGymAsViewer() {
       return resource.data.gymId != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId == resource.data.gymId;
+        && viewerProfile().gymId == resource.data.gymId;
     }
 
     function validLevel(data) {
@@ -32,6 +36,27 @@ service cloud.firestore {
     function gymIdImmutableOrSetOnce() {
       return resource.data.gymId == null
         || request.resource.data.gymId == resource.data.gymId;
+    }
+
+    function pairIdFor(a, b) {
+      return a < b ? a + '__' + b : b + '__' + a;
+    }
+
+    function pairContainsAuth(pairId) {
+      return pairId.matches('^' + request.auth.uid + '__.*')
+        || pairId.matches('.*__' + request.auth.uid + '$');
+    }
+
+    function requestAfter(requestId) {
+      return getAfter(/databases/$(database)/documents/trainingRequests/$(requestId)).data;
+    }
+
+    function requestBefore(requestId) {
+      return get(/databases/$(database)/documents/trainingRequests/$(requestId)).data;
+    }
+
+    function relationExists(pairId) {
+      return exists(/databases/$(database)/documents/relations/$(pairId));
     }
 
     match /gyms/{gymId} {
@@ -56,6 +81,151 @@ service cloud.firestore {
         && request.resource.data.bio.size() <= 280
         && request.resource.data.sports is list
         && request.resource.data.availability is list;
+    }
+
+    match /trainingRequests/{requestId} {
+      // get sur doc absent autorisé (évite permission-denied avant create)
+      allow get: if signedIn() && (
+        resource == null
+        || request.auth.uid == resource.data.senderId
+        || request.auth.uid == resource.data.receiverId
+      );
+
+      allow list: if signedIn()
+        && (request.auth.uid == resource.data.senderId
+          || request.auth.uid == resource.data.receiverId);
+
+      allow create: if signedIn()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId is string
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.gymId == viewerProfile().gymId
+        && request.resource.data.gymId == get(/databases/$(database)/documents/users/$(request.resource.data.receiverId)).data.gymId
+        && request.resource.data.sport == 'CrossFit'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.startsAt is timestamp
+        && request.resource.data.endsAt is timestamp
+        && request.resource.data.startsAt > request.time
+        && request.resource.data.endsAt > request.resource.data.startsAt
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 2
+        && request.resource.data.members.hasAll([request.auth.uid, request.resource.data.receiverId])
+        && request.resource.data.respondedAt == null;
+
+      allow update: if signedIn()
+        && request.auth.uid == resource.data.receiverId
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['accepted', 'rejected']
+        && request.resource.data.senderId == resource.data.senderId
+        && request.resource.data.receiverId == resource.data.receiverId
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.gymId == resource.data.gymId
+        && request.resource.data.sport == resource.data.sport
+        && request.resource.data.startsAt == resource.data.startsAt
+        && request.resource.data.endsAt == resource.data.endsAt
+        && request.resource.data.timeZone == resource.data.timeZone
+        && request.resource.data.message == resource.data.message
+        && request.resource.data.respondedAt is timestamp;
+    }
+
+    match /relations/{pairId} {
+      // get sur doc absent (transaction) : UID dans la clé de paire
+      allow get: if signedIn() && (
+        (resource != null && request.auth.uid in resource.data.members)
+        || (resource == null && pairContainsAuth(pairId))
+      );
+
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+
+      allow create: if signedIn()
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 2
+        && request.auth.uid in request.resource.data.members
+        && pairId == pairIdFor(request.resource.data.members[0], request.resource.data.members[1])
+        && request.resource.data.sourceRequestId is string
+        && requestAfter(request.resource.data.sourceRequestId).receiverId == request.auth.uid
+        && requestAfter(request.resource.data.sourceRequestId).status == 'accepted'
+        && requestBefore(request.resource.data.sourceRequestId).status == 'pending'
+        && request.resource.data.gymId == requestAfter(request.resource.data.sourceRequestId).gymId;
+
+      allow update, delete: if false;
+    }
+
+    match /chats/{pairId} {
+      allow get: if signedIn() && (
+        (resource != null && request.auth.uid in resource.data.members)
+        || (resource == null && pairContainsAuth(pairId))
+      );
+
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+
+      allow create: if signedIn()
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 2
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.relationId == pairId
+        && pairContainsAuth(pairId)
+        && existsAfter(/databases/$(database)/documents/relations/$(pairId))
+        && request.auth.uid in getAfter(/databases/$(database)/documents/relations/$(pairId)).data.members;
+
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.members
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.relationId == resource.data.relationId;
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(pairId)).data.members
+          && relationExists(pairId);
+
+        allow create: if signedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(pairId)).data.members
+          && relationExists(pairId)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+
+        allow update, delete: if false;
+      }
+    }
+
+    match /trainingSessions/{sessionId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+
+      allow create: if signedIn()
+        && request.resource.data.requestId == sessionId
+        && request.resource.data.members is list
+        && request.auth.uid in request.resource.data.members
+        && requestAfter(sessionId).status == 'accepted'
+        && requestAfter(sessionId).receiverId == request.auth.uid
+        && requestBefore(sessionId).status == 'pending'
+        && request.resource.data.status == 'planned'
+        && request.resource.data.relationId == pairIdFor(
+          requestAfter(sessionId).senderId,
+          requestAfter(sessionId).receiverId
+        );
+
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.members
+        && resource.data.status == 'planned'
+        && request.resource.data.status in ['cancelled', 'done']
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.requestId == resource.data.requestId
+        && request.resource.data.relationId == resource.data.relationId
+        && request.resource.data.startsAt == resource.data.startsAt
+        && request.resource.data.endsAt == resource.data.endsAt
+        && (
+          request.resource.data.status == 'cancelled'
+          || resource.data.endsAt <= request.time
+        );
+
+      allow delete: if false;
     }
   }
 }

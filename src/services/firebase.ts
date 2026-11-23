@@ -43,8 +43,8 @@ function createAuth(app: ReturnType<typeof createApp>) {
 const app = isFirebaseConfigured() ? createApp() : null;
 
 /**
- * Instances partagées (PDF p.15).
- * Si .env.local manque, auth/db restent null : AuthContext affiche un message de config.
+ * Instances partagées (PDF p.15)
+ * Si .env.local manque, auth/db restent null : AuthContext affiche un message de config
  */
 export const auth = app ? createAuth(app) : null;
 export const db = app ? getFirestore(app) : null;

@@ -8,6 +8,7 @@ export type MemberCardProps = {
   level: string;
   focus: string;
   availabilityLabel: string;
+  distanceLabel?: string | null;
   onPress: () => void;
 };
 
@@ -17,6 +18,7 @@ export function MemberCard({
   level,
   focus,
   availabilityLabel,
+  distanceLabel,
   onPress,
 }: MemberCardProps) {
   const theme = useTheme();
@@ -53,9 +55,14 @@ export function MemberCard({
       </View>
 
       <View style={[styles.footer, { borderTopColor: theme.backgroundSelected }]}>
-        <Text style={[styles.availability, { color: theme.textSecondary }]}>
-          Dispo : {availabilityLabel}
-        </Text>
+        <View style={styles.footerText}>
+          <Text style={[styles.availability, { color: theme.textSecondary }]}>
+            Dispo : {availabilityLabel}
+          </Text>
+          {distanceLabel ? (
+            <Text style={[styles.distance, { color: theme.text }]}>{distanceLabel}</Text>
+          ) : null}
+        </View>
         <Text style={[styles.action, { color: theme.text }]}>Voir le profil</Text>
       </View>
     </Pressable>
@@ -112,10 +119,17 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: Spacing.three,
   },
-  availability: {
-    fontSize: 13,
+  footerText: {
     flex: 1,
     paddingRight: Spacing.two,
+    gap: 2,
+  },
+  availability: {
+    fontSize: 13,
+  },
+  distance: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   action: {
     fontSize: 13,

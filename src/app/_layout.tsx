@@ -50,6 +50,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="member/[userId]" options={{ title: 'Profil athlète' }} />
         <Stack.Screen name="request/[userId]" options={{ title: 'Proposer un WOD' }} />
+        <Stack.Screen name="chat/[chatId]" options={{ title: 'Conversation' }} />
         <Stack.Screen name="+not-found" options={{ title: 'Introuvable' }} />
       </Stack>
     </>

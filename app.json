@@ -32,6 +32,12 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "GymMate utilise ta position pour filtrer les athlètes proches de ta box."
+        }
       ]
     ],
     "experiments": {

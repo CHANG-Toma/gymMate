@@ -10,13 +10,15 @@ Application CrossFit (projet fil rouge React Native).
    npm install
    ```
 
-2. Configure Firebase (J4)
+2. Configure Firebase — **à faire dans la console**
 
-   - Crée un projet Firebase + app **Web**
-   - Active Authentication Email/Password
-   - Crée Firestore et publie `firestore.rules`
-   - Crée les docs `gyms` listés dans `src/data/seed-gyms.ts`
-   - Copie `.env.example` → `.env.local` et renseigne les 4 variables
+   - Projet Firebase + app **Web** `</>`
+   - Authentication → Email/Password
+   - Firestore + **republier** `firestore.rules` (J6–J9)
+   - 3 docs `gyms` (IDs dans `src/data/seed-gyms.ts`)
+   - Remplir `.env.local` (4 variables `EXPO_PUBLIC_FIREBASE_*`)
+   - Comptes test : `lina@gymmate.test` / `sami@gymmate.test` (mdp `Test1234!`)
+   - Suivi : `docs/suivi.md`
 
 3. Start the app
 

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,60 +16,119 @@ import { ChoiceChip } from '@/components/choice-chip';
 import { EmptyState } from '@/components/empty-state';
 import { MemberCard } from '@/components/member-card';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { CURRENT_BOX_NAME, MOCK_MEMBERS, filterMembers } from '@/data/mock-members';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/use-theme';
+import { getGym } from '@/services/gymService';
+import { requestCurrentPosition } from '@/services/locationService';
+import { listGymMembers } from '@/services/memberService';
+import { updateUserLocation } from '@/services/profileService';
 import {
+  DISTANCE_FILTERS,
   FOCUS_FILTERS,
   LEVEL_FILTERS,
+  filterGymMembers,
+  type DistanceFilter,
   type FocusFilter,
+  type GymMember,
   type LevelFilter,
-  type Member,
 } from '@/types/member';
+import { formatDistanceKm } from '@/utils/geo';
+import {
+  formatAvailability,
+  formatFocus,
+  formatLevel,
+} from '@/utils/profile-labels';
 
 type ScreenStatus = 'loading' | 'ready' | 'error';
 
 export default function DiscoverScreen() {
   const theme = useTheme();
+  const { user, profile, refreshProfile } = useAuth();
   const [status, setStatus] = useState<ScreenStatus>('loading');
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<GymMember[]>([]);
+  const [boxName, setBoxName] = useState(profile?.gymId ?? 'Ta box');
   const [query, setQuery] = useState('');
   const [focusFilter, setFocusFilter] = useState<FocusFilter>('Tous');
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('Tous');
+  const [distanceFilter, setDistanceFilter] = useState<DistanceFilter>('Tous');
+  const [locationHint, setLocationHint] = useState<string | null>(null);
+  const [sharingLocation, setSharingLocation] = useState(false);
 
-  function loadMembers() {
+  const loadMembers = useCallback(async () => {
+    if (!user || !profile?.gymId) {
+      setMembers([]);
+      setStatus('ready');
+      return;
+    }
+
     setStatus('loading');
     setMembers([]);
 
-    const timer = setTimeout(() => {
-      // Simulation locale. Remplacé par listGymMembers(gymId) au J6.
-      setMembers(MOCK_MEMBERS);
+    try {
+      const [rows, gym] = await Promise.all([
+        listGymMembers(profile.gymId, user.uid, profile.location),
+        getGym(profile.gymId),
+      ]);
+      setMembers(rows);
+      setBoxName(gym?.name ?? profile.gymId);
       setStatus('ready');
-    }, 700);
-
-    return () => clearTimeout(timer);
-  }
+    } catch {
+      setStatus('error');
+    }
+  }, [user, profile?.gymId, profile?.location]);
 
   useEffect(() => {
-    return loadMembers();
-  }, []);
+    void loadMembers();
+  }, [loadMembers]);
 
   const visibleMembers = useMemo(
     () =>
-      filterMembers(members, {
+      filterGymMembers(members, {
         query,
         focus: focusFilter,
         level: levelFilter,
+        distance: distanceFilter,
       }),
-    [members, query, focusFilter, levelFilter],
+    [members, query, focusFilter, levelFilter, distanceFilter],
   );
 
   const hasActiveFilters =
-    query.trim().length > 0 || focusFilter !== 'Tous' || levelFilter !== 'Tous';
+    query.trim().length > 0 ||
+    focusFilter !== 'Tous' ||
+    levelFilter !== 'Tous' ||
+    distanceFilter !== 'Tous';
+
+  const canFilterByDistance = Boolean(profile?.location);
 
   function clearFilters() {
     setQuery('');
     setFocusFilter('Tous');
     setLevelFilter('Tous');
+    setDistanceFilter('Tous');
+  }
+
+  async function handleShareLocation() {
+    if (!user || sharingLocation) {
+      return;
+    }
+    setSharingLocation(true);
+    setLocationHint(null);
+    const result = await requestCurrentPosition();
+    if (!result.ok) {
+      setLocationHint(result.message);
+      setSharingLocation(false);
+      return;
+    }
+
+    try {
+      await updateUserLocation(user.uid, result.coords);
+      await refreshProfile();
+      setLocationHint('Position enregistrée. Tu peux filtrer par distance.');
+    } catch {
+      setLocationHint('Impossible d’enregistrer la position. Réessaie.');
+    } finally {
+      setSharingLocation(false);
+    }
   }
 
   return (
@@ -78,7 +137,7 @@ export default function DiscoverScreen() {
       style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <FlatList
         data={status === 'ready' ? visibleMembers : []}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.uid}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListHeaderComponent={
@@ -86,7 +145,7 @@ export default function DiscoverScreen() {
             <View style={styles.titleRow}>
               <View style={styles.titleBlock}>
                 <Text style={[styles.kicker, { color: theme.textSecondary }]}>Ta box</Text>
-                <Text style={[styles.title, { color: theme.text }]}>{CURRENT_BOX_NAME}</Text>
+                <Text style={[styles.title, { color: theme.text }]}>{boxName}</Text>
                 <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
                   {status === 'ready'
                     ? `${visibleMembers.length} athlète${visibleMembers.length > 1 ? 's' : ''} dans ta salle`
@@ -108,6 +167,33 @@ export default function DiscoverScreen() {
                 <Text style={[styles.profileButtonText, { color: theme.text }]}>Profil</Text>
               </Pressable>
             </View>
+
+            <Pressable
+              onPress={handleShareLocation}
+              disabled={sharingLocation}
+              style={({ pressed }) => [
+                styles.locationButton,
+                {
+                  backgroundColor: theme.backgroundElement,
+                  borderColor: theme.backgroundSelected,
+                  opacity: pressed || sharingLocation ? 0.8 : 1,
+                },
+              ]}>
+              <Text style={[styles.locationButtonText, { color: theme.text }]}>
+                {sharingLocation
+                  ? 'Localisation…'
+                  : profile?.location
+                    ? 'Actualiser ma position'
+                    : 'Partager ma position'}
+              </Text>
+            </Pressable>
+            {locationHint ? (
+              <Text style={[styles.hint, { color: theme.textSecondary }]}>{locationHint}</Text>
+            ) : !canFilterByDistance ? (
+              <Text style={[styles.hint, { color: theme.textSecondary }]}>
+                Partage ta position pour activer le filtre distance.
+              </Text>
+            ) : null}
 
             <TextInput
               value={query}
@@ -154,6 +240,27 @@ export default function DiscoverScreen() {
                 />
               ))}
             </ScrollView>
+
+            <Text style={[styles.filterLabel, { color: theme.text }]}>Distance</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}>
+              {DISTANCE_FILTERS.map((distance) => (
+                <ChoiceChip
+                  key={distance}
+                  label={distance}
+                  selected={distanceFilter === distance}
+                  onPress={() => {
+                    if (distance !== 'Tous' && !canFilterByDistance) {
+                      setLocationHint('Partage d’abord ta position pour filtrer par distance.');
+                      return;
+                    }
+                    setDistanceFilter(distance);
+                  }}
+                />
+              ))}
+            </ScrollView>
           </View>
         }
         ListEmptyComponent={
@@ -169,14 +276,14 @@ export default function DiscoverScreen() {
               title="Chargement impossible"
               message="Impossible de charger la liste. Réessaie."
               actionLabel="Réessayer"
-              onAction={loadMembers}
+              onAction={() => void loadMembers()}
             />
           ) : members.length === 0 ? (
             <EmptyState
               title="Personne d’autre dans ta box"
               message="Recharge la liste, ou invite des potes de ta salle."
               actionLabel="Recharger"
-              onAction={loadMembers}
+              onAction={() => void loadMembers()}
             />
           ) : (
             <EmptyState
@@ -187,20 +294,21 @@ export default function DiscoverScreen() {
                   : 'Aucun athlète à afficher.'
               }
               actionLabel={hasActiveFilters ? 'Effacer les filtres' : 'Recharger'}
-              onAction={hasActiveFilters ? clearFilters : loadMembers}
+              onAction={hasActiveFilters ? clearFilters : () => void loadMembers()}
             />
           )
         }
         renderItem={({ item }) => (
           <MemberCard
             displayName={item.displayName}
-            level={item.level}
-            focus={item.focus}
-            availabilityLabel={item.availabilityLabel}
+            level={formatLevel(item.level)}
+            focus={formatFocus(item.goal)}
+            availabilityLabel={formatAvailability(item.availability)}
+            distanceLabel={formatDistanceKm(item.distanceKm)}
             onPress={() =>
               router.push({
                 pathname: '/member/[userId]',
-                params: { userId: item.id },
+                params: { userId: item.uid },
               })
             }
           />
@@ -256,6 +364,21 @@ const styles = StyleSheet.create({
   profileButtonText: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  locationButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    alignSelf: 'flex-start',
+  },
+  locationButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  hint: {
+    fontSize: 12,
+    lineHeight: 16,
   },
   search: {
     marginTop: Spacing.two,

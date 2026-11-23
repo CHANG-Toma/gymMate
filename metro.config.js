@@ -3,20 +3,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Firebase JS SDK + Metro package exports (Expo SDK 53+)
-config.resolver.resolveRequest = (context, moduleImport, platform) => {
-  if (moduleImport.startsWith('@firebase/')) {
-    return context.resolveRequest(
-      {
-        ...context,
-        isESMImport: true,
-      },
-      moduleImport,
-      platform,
-    );
-  }
-
-  return context.resolveRequest(context, moduleImport, platform);
-};
+// Expo SDK 57 + firebase@12 : pas besoin de resolveRequest custom
+// (un override cassait la résolution web de @expo/metro-runtime).
 
 module.exports = config;

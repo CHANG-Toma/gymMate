@@ -1,4 +1,5 @@
 import { Redirect, router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,12 +8,15 @@ import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { logout, mapAuthError } from '@/services/authService';
-import { useState } from 'react';
+import { requestCurrentPosition } from '@/services/locationService';
+import { updateUserLocation } from '@/services/profileService';
 
 export default function AccountScreen() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [sharingLocation, setSharingLocation] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   if (!user) {
     return <Redirect href="/login" />;
@@ -33,6 +37,30 @@ export default function AccountScreen() {
     }
   }
 
+  async function handleShareLocation() {
+    if (sharingLocation) {
+      return;
+    }
+    setSharingLocation(true);
+    setError(null);
+    setInfo(null);
+    const result = await requestCurrentPosition();
+    if (!result.ok) {
+      setError(result.message);
+      setSharingLocation(false);
+      return;
+    }
+    try {
+      await updateUserLocation(user!.uid, result.coords);
+      await refreshProfile();
+      setInfo('Position partagée pour le filtre distance.');
+    } catch {
+      setError('Impossible d’enregistrer la position.');
+    } finally {
+      setSharingLocation(false);
+    }
+  }
+
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <View style={styles.content}>
@@ -46,11 +74,21 @@ export default function AccountScreen() {
         <Text style={styles.meta}>
           {profile?.goal || 'Focus non renseigné'}, {profile?.level || 'niveau'}
         </Text>
+        <Text style={styles.meta}>
+          {profile?.location ? 'Position partagée' : 'Position non partagée'}
+        </Text>
 
         <PrimaryButton
           label="Modifier mon profil"
           onPress={() => router.push('/profile')}
           style={styles.button}
+        />
+        <PrimaryButton
+          label={sharingLocation ? 'Localisation…' : 'Partager ma position'}
+          variant="ghost"
+          onPress={handleShareLocation}
+          loading={sharingLocation}
+          disabled={sharingLocation}
         />
         <PrimaryButton
           label={loggingOut ? 'Déconnexion…' : 'Se déconnecter'}
@@ -59,6 +97,7 @@ export default function AccountScreen() {
           loading={loggingOut}
           disabled={loggingOut}
         />
+        {info ? <Text style={styles.info}>{info}</Text> : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     </SafeAreaView>
@@ -96,6 +135,10 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: Spacing.four,
+  },
+  info: {
+    color: Brand.accent,
+    fontWeight: '700',
   },
   error: {
     color: '#FF5A3D',

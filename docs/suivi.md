@@ -85,70 +85,148 @@
 
 ---
 
-## J4 · Connecter (08/10/2026)
+## J4 · Connecter (code prêt — 23/11/2026)
 
-### Ce qui fonctionne
+### Ce qui fonctionne (dans le dépôt)
 
 - Dépendances : `firebase@12.9.0`, `@react-native-async-storage/async-storage`
-- `.env.example` + ignore `.env*.local`
-- `src/services/firebaseConfig.ts`, `firebase.ts` (init unique + persistance mobile)
-- `authService` (`register` / `login` / `logout`) prêt pour J5
+- `.env.example` + `.env.local` (à remplir) + ignore Git `.env*.local`
+- `src/services/firebaseConfig.ts` + `firebase.ts` (init unique + persistance Auth mobile)
+- `authService` : `register` / `login` / `logout`
 - `profileService.getUserProfile` (lecture `users/{uid}`)
-- `AuthContext` + `useAuth` : `onAuthStateChanged`, profil séparé, états loading/erreur
-- `firestore.rules` : lecture `gyms` si connecté, écriture refusée
-- `metro.config.js` pour résolution Firebase / Expo
-- Catalogue `seed-gyms.ts` à créer dans la console
+- `AuthContext` + `useAuth` : `onAuthStateChanged`, profil séparé, loading/erreur
+- `metro.config.js` pour Firebase + Expo
+- Bannière si Firebase non configuré
 
 ### Différence Expo vs Firebase
 
-- **Expo** = application installée/lancée sur le téléphone (UI locale).
-- **Firebase** = backend distant (Auth + Firestore) identifié par le même `projectId`.
+- **Expo** = app sur ton téléphone / émulateur (UI).
+- **Firebase** = backend distant (Auth + Firestore), identifié par le même `projectId`.
 
-### Test réalisé
+### Prochaine étape côté code
 
-1. Sans `.env.local` : bannière de config, app navigable
-2. Après remplissage `.env.local` + Auth Email/Password + Firestore + règles publiées : session `initializing` puis écran d’accueil
-3. `npx expo-doctor` : deps Expo un peu en retard (hors Firebase), Firebase 12.9.0 OK
-
-### À faire de ton côté (console)
-
-1. Créer le projet Firebase + app Web
-2. Activer Email/Password
-3. Créer Firestore + publier `firestore.rules`
-4. Créer les 3 docs `gyms` (voir `src/data/seed-gyms.ts`)
-5. Remplir `.env.local` puis `npx expo start --clear`
-
-### Prochaine étape
-
-- **J5** : écrans inscription/connexion + création profil Firestore
+- Déjà enchaîné en **J5** (voir ci-dessous).
 
 ---
 
-## J5 · Identifier (08/10/2026)
+## J5 · Identifier (code prêt — 23/11/2026)
 
-### Ce qui fonctionne
+### Ce qui fonctionne (dans le dépôt)
 
-- `/register` : nom, email, mot de passe, confirmation + `users/{uid}` initial (`gymId: null`)
+- `/register` : nom, email, mot de passe, confirmation → Auth + `users/{uid}` (`gymId: null`)
 - Reprise si le compte Auth existe mais le profil Firestore a échoué
-- `/login` + messages d’erreur génériques
+- `/login` + erreurs génériques
 - `/profile` : wizard CrossFit → `updateDoc` Firestore
-- `/choose-gym` : lecture `gyms` + `gymId` (une fois)
+- `/choose-gym` : lecture `gyms` + set `gymId` (une fois)
 - Onglet Profil : résumé + déconnexion
-- Protection des onglets si non connecté / profil incomplet
-- `firestore.rules` : owner users + lecture même salle + gyms
+- Protection des routes si non connecté / profil incomplet
+- `firestore.rules` : owner `users`, lecture même salle, `gyms` lecture-only
 
-### À faire de ton côté
+### À FAIRE DE TON CÔTÉ (console Firebase) — obligatoire
 
-1. **Republier** les règles Firestore (`firestore.rules` mis à jour)
-2. Tester : inscription → profil → box → Découvrir → déconnexion → reconnexion
+Sans ces étapes, l’app affiche la bannière « Firebase non configuré » et Auth ne marchera pas.
 
-### Test prévu
+1. **Créer le projet** → [console.firebase.google.com](https://console.firebase.google.com)  
+   Nom ex. `gymmate-…` · Analytics optionnel · noter le **Project ID**
+2. **Ajouter une app Web** `</>` (pas iOS/Android) → nom ex. `gymmate-mobile-js`  
+   Copier `apiKey`, `authDomain`, `projectId`, `appId`
+3. **Remplir `.env.local`** à la racine (fichier déjà créé) :
 
-1. Créer compte A
-2. Compléter profil + choisir `gym_sqy`
-3. Fermer l’app, relancer : session restaurée
-4. Se déconnecter, créer/compte B : aucune donnée de A
+   ```
+   EXPO_PUBLIC_FIREBASE_API_KEY=...
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+   EXPO_PUBLIC_FIREBASE_APP_ID=...
+   ```
+
+4. **Authentication** → Méthodes de connexion → activer **Email/Password**
+5. **Firestore Database** → Créer la base (mode production / règles fermées)  
+   Localisation : noter celle choisie (ex. `eur3`)
+6. **Publier les règles** : coller le contenu de `firestore.rules` dans l’onglet Règles → Publier
+7. **Créer 3 docs** dans la collection `gyms` (IDs exacts) — voir `src/data/seed-gyms.ts` :
+
+   | ID doc | Champs |
+   |--------|--------|
+   | `gym_sqy` | `name`, `city`, `address` |
+   | `gym_versailles` | idem |
+   | `gym_paris` | idem |
+
+8. Attendre la fin de `npm i`, puis :
+
+   ```bash
+   npx expo start --clear
+   ```
+
+### Test à faire après config
+
+1. Inscription compte A → compléter profil → choisir `gym_sqy`
+2. Fermer / relancer l’app → session restaurée
+3. Se déconnecter → créer compte B → aucune donnée de A
+4. Console Auth : 2 users · Firestore : 2 docs `users/{uid}` avec le même UID
 
 ### Prochaine étape
 
-- **J6** : membres Firestore filtrés par `gymId` (A voit B, pas C)
+- ~~**J6**~~ → voir sections suivantes (implémenté)
+
+---
+
+## J6 · Découvrir (23/11/2026)
+
+### Ce qui fonctionne
+
+- `memberService.listGymMembers(gymId)` : filtre Firestore `gymId`, exclusion du uid courant
+- Découvrir branché Firestore + états loading / vide / erreur
+- Filtres focus, niveau, recherche + **bonus géoloc** (distance Haversine)
+- `expo-location` + bouton « Partager ma position » (Découvrir / Profil)
+- Détail membre via `getUserProfile`
+
+### Test
+
+1. Lina (`gym_sqy`) voit Sami, pas un compte d’une autre box
+2. Sans position : filtre distance désactivé avec message
+3. Avec positions partagées : chips &lt;2 / &lt;5 / &lt;10 km
+
+---
+
+## J7 · Demander (23/11/2026)
+
+### Ce qui fonctionne
+
+- `requestService` : envoi, listes reçues/envoyées, refus
+- Formulaire `/request/[userId]` → `trainingRequests` (CrossFit, créneau futur)
+- Onglet Demandes : Reçues / Envoyées + badges
+
+---
+
+## J8 · Relier (23/11/2026)
+
+### Ce qui fonctionne
+
+- `acceptRequest` en `runTransaction` : accepted + relation + chat + séance
+- Refus : statut only, pas de chat
+- Onglet Séances : À venir / Historique, annuler, marquer terminée
+
+---
+
+## J9 · Échanger (23/11/2026)
+
+### Ce qui fonctionne
+
+- Liste conversations (`chats` array-contains)
+- `/chat/[chatId]` : `onSnapshot` 50 messages, envoi 1–1000 chars
+- Accès refusé sans relation
+
+### À faire de ton côté
+
+1. **Republier** `firestore.rules` dans la console
+2. Créer les 3 docs `gyms` si absents (`src/data/seed-gyms.ts`)
+3. Tester A↔B : demande → acceptation → chat live
+
+### Comptes test
+
+- `lina@gymmate.test` / `Test1234!`
+- `sami@gymmate.test` / `Test1234!`
+
+### Prochaine étape
+
+- **J10** : tests docs, README final, démo complète

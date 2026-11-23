@@ -1,7 +1,12 @@
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 import { db } from '@/services/firebase';
-import type { UserAvailability, UserLevel, UserProfile } from '@/types/user-profile';
+import type {
+  UserAvailability,
+  UserLevel,
+  UserLocation,
+  UserProfile,
+} from '@/types/user-profile';
 
 export type ProfileWriteInput = {
   displayName: string;
@@ -20,7 +25,22 @@ function requireDb() {
   return db;
 }
 
-function mapProfile(uid: string, data: Record<string, unknown>): UserProfile {
+function mapLocation(raw: unknown): UserLocation | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+  const data = raw as Record<string, unknown>;
+  if (typeof data.lat !== 'number' || typeof data.lng !== 'number') {
+    return null;
+  }
+  return {
+    lat: data.lat,
+    lng: data.lng,
+    updatedAt: data.updatedAt,
+  };
+}
+
+export function mapProfile(uid: string, data: Record<string, unknown>): UserProfile {
   return {
     uid,
     displayName: typeof data.displayName === 'string' ? data.displayName : '',
@@ -35,6 +55,7 @@ function mapProfile(uid: string, data: Record<string, unknown>): UserProfile {
       : [],
     bio: typeof data.bio === 'string' ? data.bio : '',
     gymId: typeof data.gymId === 'string' ? data.gymId : null,
+    location: mapLocation(data.location),
   };
 }
 
@@ -79,6 +100,20 @@ export async function updateUserProfile(uid: string, input: ProfileWriteInput): 
 export async function setUserGym(uid: string, gymId: string): Promise<void> {
   await updateDoc(doc(requireDb(), 'users', uid), {
     gymId,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateUserLocation(
+  uid: string,
+  coords: { lat: number; lng: number },
+): Promise<void> {
+  await updateDoc(doc(requireDb(), 'users', uid), {
+    location: {
+      lat: coords.lat,
+      lng: coords.lng,
+      updatedAt: serverTimestamp(),
+    },
     updatedAt: serverTimestamp(),
   });
 }

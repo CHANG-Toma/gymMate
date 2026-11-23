@@ -1,13 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { isProfileComplete, isProfileReadyForGym } from '@/services/profileService';
 
+const TAB_BAR_CONTENT_HEIGHT = 52;
+
 export default function TabsLayout() {
   const { user, profile, profileLoading, initializing } = useAuth();
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 10);
 
   if (initializing || profileLoading) {
     return (
@@ -41,10 +46,17 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: Brand.black,
           borderTopColor: Brand.border,
+          height: TAB_BAR_CONTENT_HEIGHT + bottomInset,
+          paddingTop: 6,
+          paddingBottom: bottomInset,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
+          marginBottom: 0,
         },
       }}>
       <Tabs.Screen
