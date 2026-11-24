@@ -264,13 +264,12 @@ Sans ces étapes, l’app affiche la bannière « Firebase non configuré » et 
 ### Tests auto (24/11)
 
 - `npm run test:firebase` → **12/12 OK**
-- T12 : idempotence id stable (`getDoc` avant `setDoc`, pas de réécriture)
+- Parcours app manuel OK (messages / démo)
 
-### À faire de ton côté
+### Livrable
 
-1. Republier tout `firestore.rules` (Console Firestore → Règles → Publier)
-2. `npm run test:firebase` → viser 12/12
-3. Captures démo + cocher `docs/tests.md`
+- Socle J1→J10 : Auth, profil, box, demandes, acceptation atomique, séances, chat, règles, docs
+- Prêt démo orale A↔B
 
 ### Difficulté / simplification
 

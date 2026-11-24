@@ -1,37 +1,51 @@
-import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { Brand } from '@/constants/brand';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Spacing } from '@/constants/theme';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function RootNavigator() {
   const { initializing, configError } = useAuth();
 
   useEffect(() => {
     if (!initializing) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [initializing]);
 
   useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as {
-        type?: string;
-        sessionId?: string;
-      };
-      if (data?.type === 'session_reminder' || data?.type === 'session_accepted') {
-        router.push('/sessions');
-      } else if (data?.type === 'request_sent') {
-        router.push('/requests');
+    if (Platform.OS === 'web') return;
+    let remove = () => {};
+    let cancelled = false;
+    (async () => {
+      try {
+        const Notifications = await import('expo-notifications');
+        if (cancelled) return;
+        const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+          const data = response.notification.request.content.data as {
+            type?: string;
+            sessionId?: string;
+          };
+          if (data?.type === 'session_reminder' || data?.type === 'session_accepted') {
+            router.push('/sessions');
+          } else if (data?.type === 'request_sent') {
+            router.push('/requests');
+          }
+        });
+        remove = () => sub.remove();
+      } catch {
+        // Expo Go / permissions : ne pas faire planter le boot
       }
-    });
-    return () => sub.remove();
+    })();
+    return () => {
+      cancelled = true;
+      remove();
+    };
   }, []);
 
   if (initializing) {

@@ -52,15 +52,15 @@ EXPO_PUBLIC_FIREBASE_APP_ID=
 |--------|-------|--------------|-----|
 | A Lina | `lina@gymmate.test` | `Test1234!` | `gym_sqy` |
 | B Sami | `sami@gymmate.test` | `Test1234!` | `gym_sqy` |
+| C Nora | `nora@gymmate.test` | `Test1234!` | `gym_paris` |
 
-Créer un compte **C** sur `gym_paris` pour les tests de filtrage / droits.
+## Démo attendue (brief)
 
-## Démo recommandée (2 comptes)
-
-1. Connexion A → Découvrir → profil B → Proposer un WOD  
-2. Connexion B → Demandes → Accepter  
-3. Vérifier Séances + Messages (échange live)  
-4. (Optionnel) Refus d’une demande : pas de nouveau chat  
+1. **A** (même box que B) → Découvrir → profil B → Proposer un entraînement  
+2. **B** → Demandes reçues → **Accepter** → séance créée + chat ouvert  
+3. A et B échangent des messages en temps réel  
+4. **C** (autre salle) → montrer qu’il **ne peut pas** lire / écrire dans la conversation A–B  
+5. (Optionnel) Refus d’une demande : pas de relation / séance / chat
 
 ## Architecture
 
