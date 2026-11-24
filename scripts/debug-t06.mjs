@@ -12,12 +12,9 @@ import {
   runTransaction,
 } from 'firebase/firestore';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyBpLBCM6pA0Odj2Kgr4EnX02cbdN7PfB24',
-  authDomain: 'gymmate-ebd11.firebaseapp.com',
-  projectId: 'gymmate-ebd11',
-  appId: '1:400170236308:web:0dedfa31d83dbe9983f781',
-};
+import { requireFirebaseConfig } from './load-env.mjs';
+
+const firebaseConfig = requireFirebaseConfig();
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);

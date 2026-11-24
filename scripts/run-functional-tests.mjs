@@ -1,6 +1,7 @@
 /**
  * Recette T01–T12 automatisée (Auth + Firestore + règles).
  * Usage: node scripts/run-functional-tests.mjs
+ * Prérequis : .env.local (pas de clé en dur dans le repo).
  */
 import { initializeApp } from 'firebase/app';
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
@@ -20,12 +21,9 @@ import {
   where,
 } from 'firebase/firestore';
 
-const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBpLBCM6pA0Odj2Kgr4EnX02cbdN7PfB24',
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'gymmate-ebd11.firebaseapp.com',
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'gymmate-ebd11',
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:400170236308:web:0dedfa31d83dbe9983f781',
-};
+import { requireFirebaseConfig } from './load-env.mjs';
+
+const firebaseConfig = requireFirebaseConfig();
 
 const ACCOUNTS = {
   A: { email: 'lina@gymmate.test', password: 'Test1234!', name: 'Lina', gymId: 'gym_sqy' },
