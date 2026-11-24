@@ -14,6 +14,10 @@ import { PrimaryButton } from '@/components/primary-button';
 import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import {
+  cancelSessionReminder,
+  syncSessionReminders,
+} from '@/services/notificationService';
 import { getUserProfile } from '@/services/profileService';
 import { cancelSession, listMySessions, markSessionDone } from '@/services/sessionService';
 import type { TrainingSession } from '@/types/relation';
@@ -59,7 +63,9 @@ export default function SessionsScreen() {
           return [uid, profile?.displayName ?? 'Athlète'] as const;
         }),
       );
-      setNames(Object.fromEntries(entries));
+      const nameMap = Object.fromEntries(entries);
+      setNames(nameMap);
+      await syncSessionReminders(rows, nameMap, user.uid);
     } catch {
       setError('Impossible de charger les séances.');
     } finally {
@@ -87,6 +93,7 @@ export default function SessionsScreen() {
     setActingId(sessionId);
     try {
       await cancelSession(sessionId, user.uid);
+      await cancelSessionReminder(sessionId);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Annulation impossible.');
@@ -102,6 +109,7 @@ export default function SessionsScreen() {
     setActingId(sessionId);
     try {
       await markSessionDone(sessionId, user.uid);
+      await cancelSessionReminder(sessionId);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Mise à jour impossible.');

@@ -127,23 +127,19 @@ service cloud.firestore {
         && request.resource.data.endsAt == resource.data.endsAt
         && request.resource.data.timeZone == resource.data.timeZone
         && request.resource.data.message == resource.data.message
-        && request.resource.data.respondedAt is timestamp;
+        && request.resource.data.respondedAt == request.time;
     }
 
     match /relations/{pairId} {
-      // get sur doc absent (transaction) : UID dans la clé de paire
-      allow get: if signedIn() && (
-        (resource != null && request.auth.uid in resource.data.members)
-        || (resource == null && pairContainsAuth(pairId))
-      );
-
-      allow list: if signedIn() && request.auth.uid in resource.data.members;
+      // get y compris doc absent (transaction) si l'UID est dans la clé de paire
+      allow get: if signedIn() && pairContainsAuth(pairId);
+      allow list: if signedIn() && resource.data.members.hasAny([request.auth.uid]);
 
       allow create: if signedIn()
+        && pairContainsAuth(pairId)
         && request.resource.data.members is list
         && request.resource.data.members.size() == 2
-        && request.auth.uid in request.resource.data.members
-        && pairId == pairIdFor(request.resource.data.members[0], request.resource.data.members[1])
+        && request.resource.data.members.hasAny([request.auth.uid])
         && request.resource.data.sourceRequestId is string
         && requestAfter(request.resource.data.sourceRequestId).receiverId == request.auth.uid
         && requestAfter(request.resource.data.sourceRequestId).status == 'accepted'
@@ -154,24 +150,19 @@ service cloud.firestore {
     }
 
     match /chats/{pairId} {
-      allow get: if signedIn() && (
-        (resource != null && request.auth.uid in resource.data.members)
-        || (resource == null && pairContainsAuth(pairId))
-      );
-
-      allow list: if signedIn() && request.auth.uid in resource.data.members;
+      allow get: if signedIn() && pairContainsAuth(pairId);
+      allow list: if signedIn() && resource.data.members.hasAny([request.auth.uid]);
 
       allow create: if signedIn()
+        && pairContainsAuth(pairId)
         && request.resource.data.members is list
         && request.resource.data.members.size() == 2
-        && request.auth.uid in request.resource.data.members
+        && request.resource.data.members.hasAny([request.auth.uid])
         && request.resource.data.relationId == pairId
-        && pairContainsAuth(pairId)
-        && existsAfter(/databases/$(database)/documents/relations/$(pairId))
-        && request.auth.uid in getAfter(/databases/$(database)/documents/relations/$(pairId)).data.members;
+        && existsAfter(/databases/$(database)/documents/relations/$(pairId));
 
       allow update: if signedIn()
-        && request.auth.uid in resource.data.members
+        && resource.data.members.hasAny([request.auth.uid])
         && request.resource.data.members == resource.data.members
         && request.resource.data.relationId == resource.data.relationId;
 
@@ -179,11 +170,11 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if signedIn()
-          && request.auth.uid in get(/databases/$(database)/documents/chats/$(pairId)).data.members
+          && get(/databases/$(database)/documents/chats/$(pairId)).data.members.hasAny([request.auth.uid])
           && relationExists(pairId);
 
         allow create: if signedIn()
-          && request.auth.uid in get(/databases/$(database)/documents/chats/$(pairId)).data.members
+          && get(/databases/$(database)/documents/chats/$(pairId)).data.members.hasAny([request.auth.uid])
           && relationExists(pairId)
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.text is string
@@ -196,23 +187,28 @@ service cloud.firestore {
     }
 
     match /trainingSessions/{sessionId} {
-      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      // get sur doc absent requis pour la transaction d'acceptation (tx.get avant create)
+      allow get: if signedIn() && (
+        resource == null
+        || resource.data.members.hasAny([request.auth.uid])
+      );
+      allow list: if signedIn() && resource.data.members.hasAny([request.auth.uid]);
 
       allow create: if signedIn()
         && request.resource.data.requestId == sessionId
         && request.resource.data.members is list
-        && request.auth.uid in request.resource.data.members
+        && request.resource.data.members.hasAny([request.auth.uid])
+        && request.resource.data.status == 'planned'
         && requestAfter(sessionId).status == 'accepted'
         && requestAfter(sessionId).receiverId == request.auth.uid
         && requestBefore(sessionId).status == 'pending'
-        && request.resource.data.status == 'planned'
         && request.resource.data.relationId == pairIdFor(
           requestAfter(sessionId).senderId,
           requestAfter(sessionId).receiverId
         );
 
       allow update: if signedIn()
-        && request.auth.uid in resource.data.members
+        && resource.data.members.hasAny([request.auth.uid])
         && resource.data.status == 'planned'
         && request.resource.data.status in ['cancelled', 'done']
         && request.resource.data.members == resource.data.members

@@ -95,6 +95,12 @@ export async function acceptRequest(
     const endsAt = request.endsAt;
     const timeZone = String(request.timeZone ?? 'Europe/Paris');
 
+    // Marquer la demande acceptée d'abord (getAfter dans les règles).
+    tx.update(requestRef, {
+      status: 'accepted',
+      respondedAt: serverTimestamp(),
+    });
+
     if (!relationSnap.exists()) {
       tx.set(relationRef, {
         members,
@@ -110,11 +116,6 @@ export async function acceptRequest(
         updatedAt: serverTimestamp(),
       });
     }
-
-    tx.update(requestRef, {
-      status: 'accepted',
-      respondedAt: serverTimestamp(),
-    });
 
     if (!sessionSnap.exists()) {
       tx.set(sessionRef, {

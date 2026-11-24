@@ -1,66 +1,88 @@
-# GymMate (Expo + Firebase)
+# GymMate
 
-Application CrossFit (projet fil rouge React Native).
+Application **React Native (Expo SDK 57) + TypeScript + Firebase** pour trouver un partenaire CrossFit dans la même box, proposer un WOD, puis chatter **après acceptation**.
 
-## Get started
+## Fonctionnalités (J1→J9 + bonus)
 
-1. Install dependencies
+- Compte email/mot de passe, profil CrossFit, choix de box
+- Découvrir les athlètes de la même salle (filtres focus / niveau / recherche)
+- Demandes d’entraînement, acceptation / refus
+- Relation + séance + chat créés **atomiquement** à l’acceptation
+- Messages temps réel (`onSnapshot`)
+- Bonus : géolocalisation (filtre distance), rappels locaux de séance
 
-   ```bash
-   npm install
-   ```
+## Stack
 
-2. Configure Firebase — **à faire dans la console**
+| Élément | Version |
+|---------|---------|
+| Expo | ~57 |
+| React Native | 0.86 |
+| Firebase JS | 12.9 |
+| Expo Router | file-based |
 
-   - Projet Firebase + app **Web** `</>`
-   - Authentication → Email/Password
-   - Firestore + **republier** `firestore.rules` (J6–J9)
-   - 3 docs `gyms` (IDs dans `src/data/seed-gyms.ts`)
-   - Remplir `.env.local` (4 variables `EXPO_PUBLIC_FIREBASE_*`)
-   - Comptes test : `lina@gymmate.test` / `sami@gymmate.test` (mdp `Test1234!`)
-   - Suivi : `docs/suivi.md`
-
-3. Start the app
-
-   ```bash
-   npx expo start --clear
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Installation
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env.local
+# Remplir les 4 EXPO_PUBLIC_FIREBASE_*
+npx expo start --clear
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Configuration Firebase
 
-### Other setup steps
+1. Projet Firebase + application **Web**
+2. Authentication → **Email/Password**
+3. Firestore → publier le contenu de [`firestore.rules`](firestore.rules)
+4. (Optionnel) indexes : [`firestore.indexes.json`](firestore.indexes.json)
+5. Créer la collection `gyms` avec les 3 documents de [`src/data/seed-gyms.ts`](src/data/seed-gyms.ts)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Variables `.env.local` :
 
-## Learn more
+```
+EXPO_PUBLIC_FIREBASE_API_KEY=
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=
+EXPO_PUBLIC_FIREBASE_APP_ID=
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Comptes de test
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Compte | Email | Mot de passe | Box |
+|--------|-------|--------------|-----|
+| A Lina | `lina@gymmate.test` | `Test1234!` | `gym_sqy` |
+| B Sami | `sami@gymmate.test` | `Test1234!` | `gym_sqy` |
 
-## Join the community
+Créer un compte **C** sur `gym_paris` pour les tests de filtrage / droits.
 
-Join our community of developers creating universal apps.
+## Démo recommandée (2 comptes)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Connexion A → Découvrir → profil B → Proposer un WOD  
+2. Connexion B → Demandes → Accepter  
+3. Vérifier Séances + Messages (échange live)  
+4. (Optionnel) Refus d’une demande : pas de nouveau chat  
+
+## Architecture
+
+```
+src/app/          écrans (Expo Router)
+src/components/   UI (MemberCard, PrimaryButton, EmptyState…)
+src/contexts/     AuthContext
+src/services/     Firebase uniquement ici
+src/types/        types métier
+src/utils/        validation, dates, pairId, géo
+```
+
+## Documentation
+
+| Fichier | Contenu |
+|---------|---------|
+| [`docs/suivi.md`](docs/suivi.md) | Progression des jalons |
+| [`docs/modele-donnees.md`](docs/modele-donnees.md) | Collections Firestore |
+| [`docs/tests.md`](docs/tests.md) | Recette T01–T12 |
+| [`docs/limites.md`](docs/limites.md) | Limites connues |
+
+## Règle métier clé
+
+Une visite de profil **ne crée pas** de relation.  
+Seule l’**acceptation** crée relation + séance + chat (transaction).

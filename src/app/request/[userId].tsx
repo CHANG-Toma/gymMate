@@ -16,6 +16,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { notifyNow } from '@/services/notificationService';
 import { getUserProfile } from '@/services/profileService';
 import { sendTrainingRequest } from '@/services/requestService';
 import type { UserProfile } from '@/types/user-profile';
@@ -95,6 +96,12 @@ export default function RequestScreen() {
       );
       if (result.alreadyExists) {
         setError('Cette proposition a déjà été envoyée.');
+      } else {
+        await notifyNow(
+          'Demande envoyée',
+          `Proposition CrossFit envoyée à ${member.displayName}.`,
+          { type: 'request_sent', requestId: result.id },
+        );
       }
       setSent(true);
     } catch (err) {

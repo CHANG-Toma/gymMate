@@ -38,6 +38,14 @@
         {
           "locationWhenInUsePermission": "GymMate utilise ta position pour filtrer les athlètes proches de ta box."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#D8F500",
+          "defaultChannel": "session-reminders"
+        }
       ]
     ],
     "experiments": {

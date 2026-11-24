@@ -78,8 +78,15 @@ export async function sendTrainingRequest(
     ? doc(database, 'trainingRequests', stableId)
     : doc(collection(database, 'trainingRequests'));
 
-  // Pas de getDoc préalable : les règles refusent la lecture d'un doc inexistant
-  // (resource == null), ce qui provoquait "Missing or insufficient permissions".
+  // Reprise sans doublon : get autorisé même si absent (resource == null).
+  // Un 2ᵉ setDoc sur le même id serait un update (interdit au sender).
+  if (stableId) {
+    const existing = await getDoc(requestRef);
+    if (existing.exists()) {
+      return { id: requestRef.id, alreadyExists: true };
+    }
+  }
+
   const members = pairMembers(input.senderId, input.receiverId);
   const message = input.message.trim().slice(0, 500);
 

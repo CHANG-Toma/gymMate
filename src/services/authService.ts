@@ -20,23 +20,16 @@ export function mapAuthError(error: unknown): string {
   const code = (error as { code?: string }).code;
 
   switch (code) {
-    case 'auth/email-already-in-use':
-      return 'Cet email est déjà utilisé.';
-    case 'auth/invalid-email':
-      return 'Email invalide.';
-    case 'auth/weak-password':
-      return 'Mot de passe trop faible (6 caractères minimum).';
+    case 'auth/email-already-in-use': return 'Cet email est déjà utilisé.';
+    case 'auth/invalid-email': return 'Email invalide.';
+    case 'auth/weak-password': return 'Mot de passe trop faible (6 caractères minimum).';
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-    case 'auth/invalid-login-credentials':
-      return 'Connexion impossible avec ces identifiants.';
-    case 'auth/too-many-requests':
-      return 'Trop de tentatives. Réessaie plus tard.';
-    case 'auth/network-request-failed':
-      return 'Problème réseau. Vérifie ta connexion.';
-    default:
-      return 'Une erreur est survenue. Réessaie.';
+    case 'auth/invalid-login-credentials': return 'Connexion impossible avec ces identifiants.';
+    case 'auth/too-many-requests': return 'Trop de tentatives. Réessaie plus tard.';
+    case 'auth/network-request-failed': return 'Problème réseau. Vérifie ta connexion.';
+    default: return 'Une erreur est survenue. Réessaie.';
   }
 }
 

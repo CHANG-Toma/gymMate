@@ -1,6 +1,6 @@
 import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
@@ -9,14 +9,25 @@ import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { logout, mapAuthError } from '@/services/authService';
 import { requestCurrentPosition } from '@/services/locationService';
+import {
+  areRemindersEnabled,
+  ensureNotificationPermissions,
+  setRemindersEnabled,
+} from '@/services/notificationService';
 import { updateUserLocation } from '@/services/profileService';
 
 export default function AccountScreen() {
   const { user, profile, refreshProfile } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [sharingLocation, setSharingLocation] = useState(false);
+  const [togglingReminders, setTogglingReminders] = useState(false);
+  const [remindersOn, setRemindersOn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    void areRemindersEnabled().then(setRemindersOn);
+  }, []);
 
   if (!user) {
     return <Redirect href="/login" />;
@@ -61,6 +72,37 @@ export default function AccountScreen() {
     }
   }
 
+  async function handleToggleReminders() {
+    if (togglingReminders) {
+      return;
+    }
+    setTogglingReminders(true);
+    setError(null);
+    setInfo(null);
+
+    try {
+      if (!remindersOn) {
+        const permission = await ensureNotificationPermissions();
+        if (!permission.granted) {
+          setError(permission.message);
+          setTogglingReminders(false);
+          return;
+        }
+        await setRemindersEnabled(true);
+        setRemindersOn(true);
+        setInfo('Rappels activés : 1 h avant chaque séance prévue.');
+      } else {
+        await setRemindersEnabled(false);
+        setRemindersOn(false);
+        setInfo('Rappels désactivés.');
+      }
+    } catch {
+      setError('Impossible de mettre à jour les rappels.');
+    } finally {
+      setTogglingReminders(false);
+    }
+  }
+
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <View style={styles.content}>
@@ -77,11 +119,28 @@ export default function AccountScreen() {
         <Text style={styles.meta}>
           {profile?.location ? 'Position partagée' : 'Position non partagée'}
         </Text>
+        <Text style={styles.meta}>
+          Rappels : {remindersOn ? 'activés' : 'désactivés'}
+          {Platform.OS === 'web' ? ' (mobile uniquement)' : ''}
+        </Text>
 
         <PrimaryButton
           label="Modifier mon profil"
           onPress={() => router.push('/profile')}
           style={styles.button}
+        />
+        <PrimaryButton
+          label={
+            togglingReminders
+              ? 'Rappels…'
+              : remindersOn
+                ? 'Désactiver les rappels de séance'
+                : 'Activer les rappels de séance'
+          }
+          variant="ghost"
+          onPress={handleToggleReminders}
+          loading={togglingReminders}
+          disabled={togglingReminders || Platform.OS === 'web'}
         />
         <PrimaryButton
           label={sharingLocation ? 'Localisation…' : 'Partager ma position'}

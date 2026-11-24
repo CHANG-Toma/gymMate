@@ -15,6 +15,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { Brand } from '@/constants/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { notifyNow, scheduleSessionReminder } from '@/services/notificationService';
 import { getUserProfile } from '@/services/profileService';
 import {
   listReceivedRequests,
@@ -22,6 +23,7 @@ import {
   rejectRequest,
 } from '@/services/requestService';
 import { acceptRequest } from '@/services/relationService';
+import { getSession } from '@/services/sessionService';
 import type { TrainingRequest } from '@/types/training-request';
 import { formatSlotRange } from '@/utils/date-slot';
 
@@ -85,7 +87,17 @@ export default function RequestsScreen() {
     setActingId(requestId);
     setError(null);
     try {
-      await acceptRequest(requestId, user.uid);
+      const result = await acceptRequest(requestId, user.uid);
+      const partnerName = names[items.find((row) => row.id === requestId)?.senderId ?? ''] ?? 'partenaire';
+      await notifyNow(
+        'Séance confirmée',
+        `WOD accepté avec ${partnerName}. Un rappel sera envoyé 1 h avant.`,
+        { type: 'session_accepted', sessionId: result.sessionId },
+      );
+      const session = await getSession(result.sessionId);
+      if (session) {
+        await scheduleSessionReminder(session, partnerName);
+      }
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Acceptation impossible.');

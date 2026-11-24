@@ -227,6 +227,52 @@ Sans ces étapes, l’app affiche la bannière « Firebase non configuré » et 
 - `lina@gymmate.test` / `Test1234!`
 - `sami@gymmate.test` / `Test1234!`
 
+---
+
+## Bonus · Notifications & rappels (23/11/2026)
+
+### Ce qui fonctionne
+
+- `expo-notifications` : rappels locaux **1 h avant** chaque séance `planned`
+- Sync automatique à l’ouverture de l’onglet Séances
+- Annulation du rappel si séance annulée / terminée
+- Notif immédiate à l’envoi d’une demande et à l’acceptation
+- Profil : activer / désactiver les rappels + permission OS
+- Tap sur notif → navigation Séances / Demandes
+- Web : message clair (rappels mobile uniquement)
+
+### Limite
+
+- Rappels **locaux** (pas de push distant FCM) : adaptés Expo Go / démo mobile
+
 ### Prochaine étape
 
-- **J10** : tests docs, README final, démo complète
+- ~~**J10**~~ → section suivante
+
+---
+
+## J10 · Livrer (24/11/2026)
+
+### Ce qui fonctionne
+
+- [`docs/tests.md`](tests.md) : recette T01–T12 à remplir lors de la démo
+- [`docs/modele-donnees.md`](modele-donnees.md) : collections + règle d’acceptation
+- [`docs/limites.md`](limites.md) : limites connues
+- [`README.md`](../README.md) : install, Firebase, comptes test, démo, architecture
+- Profil simplifié : un seul formulaire (plus de wizard 5 étapes ~775 → ~300 lignes)
+
+### Tests auto (24/11)
+
+- `npm run test:firebase` → **12/12 OK**
+- T12 : idempotence id stable (`getDoc` avant `setDoc`, pas de réécriture)
+
+### À faire de ton côté
+
+1. Republier tout `firestore.rules` (Console Firestore → Règles → Publier)
+2. `npm run test:firebase` → viser 12/12
+3. Captures démo + cocher `docs/tests.md`
+
+### Difficulté / simplification
+
+- `profile.tsx` allégé : un écran scrollable + `ProfileOptionCard` extrait
+- Piège règles : `allow read` sur `resource.data` bloque les `get` de docs absents (transactions)

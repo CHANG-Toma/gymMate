@@ -1,4 +1,5 @@
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
@@ -17,6 +18,21 @@ function RootNavigator() {
       SplashScreen.hideAsync();
     }
   }, [initializing]);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as {
+        type?: string;
+        sessionId?: string;
+      };
+      if (data?.type === 'session_reminder' || data?.type === 'session_accepted') {
+        router.push('/sessions');
+      } else if (data?.type === 'request_sent') {
+        router.push('/requests');
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   if (initializing) {
     return (
